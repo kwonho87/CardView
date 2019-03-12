@@ -116,12 +116,12 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
      */
     private fun initAllView() {
 
-        var datas = mCardViewAdapter!!.getData()
+        var datas = mCardViewAdapter.getData()
 
-        mIntMax = mCardViewAdapter!!.getData().size
-        var adapterCount = mCardViewAdapter!!.getData().size
+        mIntMax = mCardViewAdapter.getData().size
+        var adapterCount = mCardViewAdapter.getData().size
         if (adapterCount < MAX_COUNT) {
-            mIntMax = mCardViewAdapter!!.getData().size
+            mIntMax = mCardViewAdapter.getData().size
         } else {
             adapterCount = MAX_COUNT
         }
@@ -252,7 +252,7 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
             translationY = (VIEW_SPACE * (MAX_COUNT - 1)).toFloat()
         }
 
-        val view = mCardViewAdapter!!.getView(lastPosition, convertView, this)
+        val view = mCardViewAdapter.getView(lastPosition, convertView, this)
 
         addViewInLayout(view, 0, getParams(view!!))
     }
