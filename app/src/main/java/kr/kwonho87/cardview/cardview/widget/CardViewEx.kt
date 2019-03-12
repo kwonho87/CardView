@@ -27,7 +27,7 @@ import kr.kwonho87.cardview.cardview.util.Utils
  * @since 2015-05-28 오후 3:03
  */
 @TargetApi(12)
-class CardViewEx : FrameLayout {
+class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayout(context, attrs) {
 
     // TAG
     private val TAG = "CardView"
@@ -45,7 +45,7 @@ class CardViewEx : FrameLayout {
     private var mActionUp = true
 
     // adapter
-    private var mCardViewAdapter: CardViewAdapter? = null
+    private var mCardViewAdapter = CardViewAdapter(context)
 
     // view 를 관리할 array
     private val mViewHolder = SparseArray<View>()
@@ -58,61 +58,71 @@ class CardViewEx : FrameLayout {
     // 최대 카드뷰 갯수.
     private var mIntMax = 0
 
-    /**
-     * 터치리스너.
-     */
-    internal var onSwipeTouchListener: OnSwipeTouchListener = object : OnSwipeTouchListener(context) {
-        override fun onTouch(view: View, event: MotionEvent): Boolean {
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    val topView = getChildAt(childCount - 1)
-                    if (topView != null) {
-                        moveY = topView.y - event.rawY
-                        downY = event.y
+
+    // 뷰들의 간격.
+    private val VIEW_SPACE_VALUE = 22.0f
+    private var VIEW_SPACE = Utils.convertDipToPixels(context, VIEW_SPACE_VALUE)
+
+    // 최대 보여줄 뷰의 갯수.
+    private val MAX_COUNT = 3
+
+    // 애니메이션 동작시간.
+    private val ANIMATION_DURATION = 220
+
+    init {
+
+        // 먼저 모든 뷰들을 제거한다.
+        removeAllViews()
+
+        // 터치리스너.
+        setOnTouchListener(object : OnSwipeTouchListener(context) {
+            override fun onTouch(view: View, event: MotionEvent): Boolean {
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        val topView = getChildAt(childCount - 1)
+                        if (topView != null) {
+                            moveY = topView.y - event.rawY
+                            downY = event.y
+                        }
+                        mActionUp = true
                     }
-                    mActionUp = true
+                    MotionEvent.ACTION_MOVE -> {}
+                    MotionEvent.ACTION_UP -> {mActionUp = true}
                 }
-                MotionEvent.ACTION_MOVE -> {
-                }//                    moveView(event);
-                MotionEvent.ACTION_UP -> {
-                    mActionUp = true
-                }//                    moveViewDefault(event);
+                return super.onTouch(view, event)
             }
-            return super.onTouch(view, event)
-        }
 
-        override fun onSwipeUp() {
-            super.onSwipeUp()
-            //            Log.d(TAG, "onSwipeUp");
+            override fun onSwipeUp() {
+                super.onSwipeUp()
 
-            // 위로 올리는 경우. mShowPosition 값이 0이 아닌경우.
-            if (mCardViewAdapter!!.getCount() > 1 && mIsDispatchTouch && mActionUp) {
-                goUp()
-                mActionUp = false
+                // 위로 올리는 경우. mShowPosition 값이 0이 아닌경우.
+                if (mCardViewAdapter!!.getCount() > 1 && mIsDispatchTouch && mActionUp) {
+                    goUp()
+                    mActionUp = false
+                }
             }
-        }
 
-        override fun onSwipeDown() {
-            super.onSwipeDown()
-            //            Log.d(TAG, "onSwipeDown");
+            override fun onSwipeDown() {
+                super.onSwipeDown()
 
-            // 아래로 내리는 경우. mShowPosition 값이 adapter의 갯수보다 크지 않는 경우.
-            if (mCardViewAdapter!!.getCount() > 1 && mIsDispatchTouch && mActionUp) {
-                goDown()
-                mActionUp = false
+                // 아래로 내리는 경우. mShowPosition 값이 adapter의 갯수보다 크지 않는 경우.
+                if (mCardViewAdapter!!.getCount() > 1 && mIsDispatchTouch && mActionUp) {
+                    goDown()
+                    mActionUp = false
+                }
             }
-        }
 
-        override fun onClick() {
-            super.onClick()
-            Log.d(TAG, "onClick")
+            override fun onClick() {
+                super.onClick()
+                Log.d(TAG, "onClick")
 
 //            // 클릭.
 //            val view = getChildAt(childCount - 1) as ItemView
 //            if (view != null) {
 //                view!!.onClick()
 //            }
-        }
+            }
+        })
     }
 
     /**
@@ -140,63 +150,54 @@ class CardViewEx : FrameLayout {
         // 뷰들을 세팅한다.
         initAllView()
 
-        for (nCount in 0 until childCount) {
-            val view = getChildAt(nCount)
-            view.setOnTouchListener(onSwipeTouchListener)
-        }
+//        for (nCount in 0 until childCount) {
+//            val view = getChildAt(nCount)
+//            view.setOnTouchListener(onSwipeTouchListener)
+//        }
     }
 
-    /**
-     * 생성자
-     *
-     * @param context
-     */
-    constructor(context: Context) : super(context) {
+//    /**
+//     * 생성자
+//     *
+//     * @param context
+//     */
+//    constructor(context: Context) : super(context) {
+//
+//        // init
+//        init(context)
+//    }
+//
+//    /**
+//     * 생성자
+//     *
+//     * @param context
+//     * @param attrs
+//     */
+//    constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
+//
+//        // init
+//        init(context)
+//    }
 
-        // init
-        init(context)
-    }
-
-    /**
-     * 생성자
-     *
-     * @param context
-     * @param attrs
-     */
-    constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
-
-        // init
-        init(context)
-    }
-
-    /**
-     * init
-     *
-     * @param context
-     * @author kwonho87
-     * @date 2015. 5. 20. 오후 5:13:29
-     */
-    private fun init(context: Context) {
-        VIEW_SPACE = Utils.convertDipToPixels(context, VIEW_SPACE_VALUE)
-
-        // 어댑터 초기화.
-        mCardViewAdapter = CardViewAdapter(context)
-        mCardViewAdapter!!.registerDataSetObserver(object : DataSetObserver() {
-            override fun onChanged() {
-                super.onChanged()
-            }
-
-            override fun onInvalidated() {
-                super.onInvalidated()
-            }
-        })
-
-        // 먼저 모든 뷰들을 제거한다.
-        removeAllViews()
-
-        // 터치리스너.
-        setOnTouchListener(onSwipeTouchListener)
-    }
+//    /**
+//     * init
+//     *
+//     * @param context
+//     * @author kwonho87
+//     * @date 2015. 5. 20. 오후 5:13:29
+//     */
+//    private fun init(context: Context) {
+//        VIEW_SPACE = Utils.convertDipToPixels(context, VIEW_SPACE_VALUE)
+//
+//        // 어댑터 초기화.
+//        mCardViewAdapter = CardViewAdapter(context)
+//
+//        // 먼저 모든 뷰들을 제거한다.
+//        removeAllViews()
+//
+//        // 터치리스너.
+//        setOnTouchListener(onSwipeTouchListener)
+//    }
 
     /**
      * @param ev
@@ -217,111 +218,98 @@ class CardViewEx : FrameLayout {
      * @date 2015. 5. 26. 오후 4:37:59
      */
     private fun initAllView() {
-        //        LogUtil.d(TAG, "initAllView");
-        if (mCardViewAdapter != null) {
 
-            var datas = mCardViewAdapter!!.getData()
+        var datas = mCardViewAdapter!!.getData()
 
+        mIntMax = mCardViewAdapter!!.getData().size
+        var adapterCount = mCardViewAdapter!!.getData().size
+        if (adapterCount < MAX_COUNT) {
             mIntMax = mCardViewAdapter!!.getData().size
-            var adapterCount = mCardViewAdapter!!.getData().size
-            if (adapterCount < MAX_COUNT) {
-                mIntMax = mCardViewAdapter!!.getData().size
-            } else {
-                adapterCount = MAX_COUNT
+        } else {
+            adapterCount = MAX_COUNT
+        }
+
+        mCardViewShowPosition = mIntMax
+        Log.d(TAG, "initAllView : mCardViewShowPosition : $mCardViewShowPosition")
+        Log.d(TAG, "initAllView : mIntMax : $mIntMax")
+
+        val childCount = childCount
+        if (childCount >= adapterCount) {
+            return
+        }
+
+        for (index in 0 until adapterCount) {
+
+            // 뷰생성.
+            val convertView = mViewHolder.get(index)
+            val view = mCardViewAdapter!!.getView(index, convertView, this)
+
+            Log.d(TAG, "value : " + (view as ItemView).getValue())
+
+            // Scale only if it is not the 0th view.
+            if (index != 0) {
+                val scale = (MAX_COUNT - index - 1) / MAX_COUNT.toFloat() * 0.2f + 0.87f
+
+                view.apply {
+
+                    // Adjust the scale.
+                    scaleX = scale
+                    scaleY = scale
+
+                    // Move in the y position
+                    translationY = (index * VIEW_SPACE).toFloat()
+
+                    // If it is the third view, the transparency is set to 50%.
+                    if(index == MAX_COUNT - 1) {
+                        alpha = 0.5f
+                    }
+                }
             }
 
-            mCardViewShowPosition = mIntMax
-            Log.d(TAG, "initAllView : mCardViewShowPosition : $mCardViewShowPosition")
-            Log.d(TAG, "initAllView : mIntMax : $mIntMax")
+            // Add child view.
+            addViewInLayout(view, 0, getParams(view))
 
-            val childCount = childCount
-            if (childCount >= adapterCount) {
-                return
-            }
-
-            for (nCount in 0 until adapterCount) {
-
-                // 뷰생성.
-                val convertView = mViewHolder.get(nCount)
-                val view = mCardViewAdapter!!.getView(nCount, convertView, this)
-
-                Log.d(TAG, "value : " + (view as ItemView).getValue())
-
-                // 0번째 뷰가 아닌 경우에만 스케일을 조절한다.
-                if (nCount != 0) {
-                    val scale = (MAX_COUNT - nCount - 1) / MAX_COUNT.toFloat() * 0.2f + 0.87f
-                    //                    LogUtil.d(TAG, "scale : " + scale);
-
-                    // 스케일을 조정한다.
-                    view!!.setScaleX(scale)
-                    view!!.setScaleY(scale)
-
-                    // y축으로 이동시킨다.
-                    view!!.setTranslationY((nCount * VIEW_SPACE).toFloat())
-                }
-
-                //                LogUtil.d("mCardViewAdapter: " + mCardViewAdapter + " / view: " + view);
-                // params 생성.
-                var params: FrameLayout.LayoutParams? = view!!.getLayoutParams() as LayoutParams?
-                if (params == null) {
-                    params = FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.MATCH_PARENT,
-                        FrameLayout.LayoutParams.MATCH_PARENT
-                    )
-                    params.gravity = Gravity.CENTER
-                }
-
-                // 만약 3번째 뷰인 경우 투명도를 50%로 한다.
-                if (nCount == MAX_COUNT - 1) {
-                    view.setAlpha(0.5f)
-                }
-
-                // 뷰를 add한다.
-                addViewInLayout(view, 0, params)
-
-                // holder에 추가한다.
-                mViewHolder.put(nCount, view)
-            }
+            // holder에 추가한다.
+            mViewHolder.put(index, view)
         }
     }
 
     /**
-     * 제일 앞장의 카드를 위로 올린다.
-     *
-     * @author kwonho87
-     * @date 2015. 5. 20. 오후 5:51:48
+     * Make default Layoutparams.
+     */
+    private fun getParams(view: View): LayoutParams? {
+        var params: FrameLayout.LayoutParams? = view.layoutParams as FrameLayout.LayoutParams?
+        params.apply {
+            FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+            this!!.gravity = Gravity.CENTER
+        }
+        return params
+    }
+
+    /**
+     * Raise the first card up.
      */
     private fun goUp() {
         Log.d(TAG, "goUp : $mIsDispatchTouch")
-        //        Log.d(TAG, "mCardViewShowPosition : " + mCardViewShowPosition);
 
-        //        // 뷰 상태가 false이면 그냥 리턴한다.
-        //        if (!isViewShow()) {
-        //            return;
-        //        }
-
-        // 뷰의 상태를 false로 설정한다.
+        // Set the state of the view to false.
         setAllViewShow(false)
 
-        // 터치가 false이면 그냥 리턴한다.
+        // If the touch is false, it just returns.
         if (!mIsDispatchTouch) {
             return
         }
 
-        // 터치 false.
+        // Touch false. Prevent duplicate touches.
         mIsDispatchTouch = false
 
-        //        // 현재 보여지는 포지션을 증가시킨다.
-        //        mShowPosition++;
-
-        // 제일 위의 뷰를 가져온다.
+        // Get the top view.
         val topView = getChildAt(childCount - 1)
 
-        // 이동시킬 y좌표 값을 계산한다.
+        // Calculate the y-coordinate value to move. So the card moves out of the screen.
         val transY = topView.translationY + topView.height
-        //        Log.i(TAG, "transY : " + transY);
 
-        // 제일 위의 뷰를 화면밖으로 이동시킨다.
+        // Move the top view out of the screen.
         topView.animate()
             .translationY(-transY)
             .alpha(1f)
@@ -332,12 +320,11 @@ class CardViewEx : FrameLayout {
             .setListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
                     super.onAnimationEnd(animation)
-                    //                        Log.i(TAG, "onAnimationEnd");
 
-                    // 애니메이션이 종료되면 맨위뷰를 제거한다.
+                    // When the animation ends, remove the top view.
                     removeView(topView)
 
-                    // 뷰들을 세팅한다.
+                    // Set new views.
                     addNewViewLast()
 
                     // 현재 보여지는 포지션을 증가시킨다.
@@ -407,16 +394,10 @@ class CardViewEx : FrameLayout {
     }
 
     /**
-     * 마지막 위치에 새로운 뷰를 추가한다.
-     *
-     * @author kwonho87
-     * @date 2015. 5. 26. 오후 4:40:33
+     * Add a new view to the 0th position.
      */
     private fun addNewViewLast() {
-        //        if (mShowPosition <= mCardViewAdapter.getCount() - MAX_COUNT) {
-        //            int lastPosition = ((BeaconContentView) mViewHolder.get(mViewHolder.size() - 1)).getPosition();
 
-        //            lastPosition = mShowPosition % MAX_COUNT;
         val lastPosition = getShowPosition(mCardViewShowPosition)
         Log.d(TAG, "lastPosition : $lastPosition")
         Log.d(TAG, "mCardViewShowPosition : $mCardViewShowPosition")
@@ -424,43 +405,25 @@ class CardViewEx : FrameLayout {
         val convertView = mViewHolder.get(0)
         val view = mCardViewAdapter!!.getView(lastPosition, convertView, this)
 
-//        (view as ItemView).setData(lastPosition, mCardViewAdapter!!.getData()[lastPosition])
-
-        // 뷰를 add한다.
-        var params: FrameLayout.LayoutParams? = view!!.getLayoutParams() as LayoutParams?
-        if (params == null) {
-            params =
-                FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
-            params.gravity = Gravity.CENTER
-        }
-
-        // 스케일 계산.
-        val scale = (MAX_COUNT - MAX_COUNT) / MAX_COUNT.toFloat() * 0.2f + 0.87f
-
         // 뷰의 스케일을 조정한다.
-        convertView.scaleX = scale
-        convertView.scaleY = scale
+        convertView.scaleX = 0.87f
+        convertView.scaleY = 0.87f
         convertView.translationY = (VIEW_SPACE * (MAX_COUNT - 1)).toFloat()
 
         // 뷰를 추가한다.
-        addViewInLayout(view, 0, params)
-        //        }
+        addViewInLayout(view, 0, getParams(view!!))
     }
 
     /**
-     * 뷰를 맨앞으로 이동시킨다.
-     *
-     * @param view
+     * Move the view forward.
      */
     private fun bringToTop(view: View?) {
-        if (view != null) {
-            view.animate()
-                .translationY(0f)
-                .scaleX(1.0f)
-                .scaleY(1.0f)
-                .setDuration(ANIMATION_DURATION.toLong())
-                .alpha(1f).interpolator = AccelerateInterpolator()
-        }
+        view!!.animate()
+            .translationY(0f)
+            .scaleX(1.0f)
+            .scaleY(1.0f)
+            .setDuration(ANIMATION_DURATION.toLong())
+            .alpha(1f).interpolator = AccelerateInterpolator()
     }
 
     /**
@@ -615,9 +578,7 @@ class CardViewEx : FrameLayout {
     }
 
     /**
-     * 차일드뷰를 포함한 모든 뷰의 enable/disable 세팅을 한다.
-     *
-     * @param state
+     * Enable / disable all views including the child view.
      */
     private fun setAllViewShow(state: Boolean) {
         for (nCount in 0 until childCount) {
@@ -647,14 +608,5 @@ class CardViewEx : FrameLayout {
 
     companion object {
 
-        // 뷰들의 간격.
-        private var VIEW_SPACE = 0
-        private val VIEW_SPACE_VALUE = 22.0f
-
-        // 최대 보여줄 뷰의 갯수.
-        private val MAX_COUNT = 3
-
-        // 애니메이션 동작시간.
-        private val ANIMATION_DURATION = 220
     }
 }
