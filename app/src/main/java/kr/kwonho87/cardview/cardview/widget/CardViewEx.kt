@@ -147,32 +147,6 @@ class CardViewEx : FrameLayout {
     }
 
     /**
-     * @return
-     * @author kwonho87
-     * @date 2015. 5. 26. 오전 11:24:17
-     */
-    private// 뷰 상태가 false이면 그냥 리턴한다.
-    // 제일 위의 뷰를 가져온다.
-    // topView.getHitRect(topRect); 在4.3以前有bug，用以下方法代替
-    // 如果按下的位置不在顶部视图上，则不移动
-    //        Log.i(TAG, "isViewShow : " + bState);
-    val isViewShow: Boolean
-        get() {
-
-            var bState = true
-            if (!isEnabled) {
-                bState = false
-            }
-            val topView = getChildAt(childCount - 1)
-            var topRect = Rect()
-            topRect = getHitRect(topRect, topView)
-            if (!topRect.contains(downX.toInt(), downY.toInt())) {
-                bState = false
-            }
-            return bState
-        }
-
-    /**
      * 생성자
      *
      * @param context
@@ -193,21 +167,6 @@ class CardViewEx : FrameLayout {
 
         // init
         init(context)
-    }
-
-//    @Throws(Throwable::class)
-//    protected override fun finalize() {
-//        Log.i(TAG, "finalize")
-//        removeAllViews()
-//        super.finalize()
-//    }
-
-    /**
-     * 터치리스너 등록.
-     * @param listener
-     */
-    fun setOnSwipeTouchListener(listener: OnSwipeTouchListener) {
-        setOnTouchListener(listener)
     }
 
     /**
@@ -666,19 +625,6 @@ class CardViewEx : FrameLayout {
             view.isEnabled = state
         }
         isEnabled = state
-    }
-
-    /**
-     * @param rect
-     * @param child
-     * @return
-     */
-    private fun getHitRect(rect: Rect, child: View): Rect {
-        rect.left = child.left
-        rect.right = child.right
-        rect.top = (child.top + child.translationY).toInt()
-        rect.bottom = (child.bottom + child.translationY).toInt()
-        return rect
     }
 
     /**
