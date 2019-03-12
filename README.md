@@ -1,7 +1,7 @@
 CardView
 ============================
 
-A widget that sweeps up and down the card view.
+A widget that swipe up and down the card view.
 Enjoy!
 
 
