@@ -246,8 +246,7 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
         Log.d(TAG, "lastPosition : $lastPosition")
         Log.d(TAG, "mCardViewShowPosition : $mCardViewShowPosition")
 
-        val convertView = mViewHolder.get(0)
-        convertView.apply {
+        val convertView = mViewHolder.get(0).apply {
             scaleX = 0.87f
             scaleY = 0.87f
             translationY = (VIEW_SPACE * (MAX_COUNT - 1)).toFloat()
@@ -337,24 +336,15 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
         if (mIntMax == MAX_COUNT) {
             val nextPosition = getShowPosition(mCardViewShowPosition)
             Log.d(TAG, "nextPosition : $nextPosition")
-            newView = mCardViewAdapter!!.getView(nextPosition, convertView, this)!!
+            newView = mCardViewAdapter.getView(nextPosition, convertView, this)!!
 
-            var params: FrameLayout.LayoutParams? = newView.layoutParams as FrameLayout.LayoutParams
-            if (params == null) {
-                params = FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.MATCH_PARENT,
-                    FrameLayout.LayoutParams.MATCH_PARENT
-                )
-                params.gravity = Gravity.CENTER
-            }
-
-            addViewInLayout(newView, childCount, params)
+            addViewInLayout(newView, childCount, getParams(newView))
 
             mViewHolder.put(0, newView)
         }
         else {
             val nextPosition = getShowPosition(mCardViewShowPosition)
-            newView = mCardViewAdapter!!.getView(nextPosition, null, this)!!
+            newView = mCardViewAdapter.getView(nextPosition, null, this)!!
 
             var params: FrameLayout.LayoutParams? = newView.layoutParams as FrameLayout.LayoutParams
             if (params == null) {
