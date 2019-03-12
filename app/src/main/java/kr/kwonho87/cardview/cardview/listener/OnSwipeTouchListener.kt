@@ -11,6 +11,11 @@ import android.view.View
  */
 open class OnSwipeTouchListener(context: Context) : View.OnTouchListener {
 
+
+    enum class ACTION {
+        ACTION_UP, ACTION_DOWN
+    }
+
     private val swipeThreshold = 100
     private val swipeVelocityThreshold = 100
 
@@ -62,8 +67,10 @@ open class OnSwipeTouchListener(context: Context) : View.OnTouchListener {
                     if (Math.abs(diffY) > swipeThreshold && Math.abs(velocityY) > swipeVelocityThreshold) {
                         if (diffY > 0) {
                             onSwipeDown()
+                            onSwipeUpDown(ACTION.ACTION_DOWN)
                         } else {
                             onSwipeUp()
+                            onSwipeUpDown(ACTION.ACTION_UP)
                         }
                     }
                 }
@@ -83,6 +90,8 @@ open class OnSwipeTouchListener(context: Context) : View.OnTouchListener {
     open fun onSwipeUp() {}
 
     open fun onSwipeDown() {}
+
+    open fun onSwipeUpDown(action: ACTION) {}
 
     open fun onClick() {}
 

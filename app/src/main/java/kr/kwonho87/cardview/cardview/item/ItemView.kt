@@ -20,6 +20,8 @@ class ItemView constructor(context: Context) : RelativeLayout(context) {
     init {
         val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         inflater.inflate(R.layout.item_view, this)
+
+        bgColor.setBackgroundColor(Utils.getRandomColor())
     }
 
     fun initFlipAnimation(position: Int) {
@@ -39,6 +41,5 @@ class ItemView constructor(context: Context) : RelativeLayout(context) {
         this.value = value
 
         title.text = value
-        bgColor.setBackgroundColor(Utils.getRandomColor())
     }
 }
