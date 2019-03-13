@@ -65,8 +65,8 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
 
         for (index in 0 until maxViewCount) {
             val view = mCardViewAdapter.getView(index, null, this) as ItemView
-            view.scaleX = getScale(index)
-            view.scaleY = getScale(index)
+            view.scaleX = 1 - (index % 0.93f)
+            view.scaleY = 1 - (index % 0.93f)
             view.translationY = getTranslation(index)
 
             addViewInLayout(view, 0, getParams(view))
@@ -196,8 +196,8 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
             view.animate()
                 .translationY(topMargin.toFloat())
                 .setInterpolator(AccelerateInterpolator())
-                .scaleX(getScaleX(index))
-                .scaleY(getScaleX(index))
+                .scaleX(getScaleXY(index))
+                .scaleY(getScaleXY(index))
                 .alpha(1f)
                 .setDuration(mAniDuration)
                 .setListener(object : AnimatorListenerAdapter() {
@@ -253,16 +253,11 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
     /**
      * Get scale value.
      */
-    private fun getScaleX(index: Int): Float {
-        return (mMaxCount - index) / mMaxCount.toFloat() * 0.2f + 0.93f
-    }
+    private fun getScaleXY(index: Int): Float {
+        var value = (mMaxCount - index) / mMaxCount.toFloat() * 0.2f + 0.93f
+        Log.d("CardView", "index : $index")
+        Log.d("CardView", "getScaleXY : $value")
 
-    /**
-     * Get scale value.
-     */
-    private fun getScale(index: Int): Float {
-        var value = 1 - (index % 0.93f)
-        Log.d("CardView", "getScale value : $value")
         return value
     }
 
