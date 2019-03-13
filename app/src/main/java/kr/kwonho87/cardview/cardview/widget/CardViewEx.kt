@@ -103,8 +103,8 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
                     for(nCount in 0 until childCount) {
                         val view = getChildAt(nCount)
                         val index = childCount - nCount
-                        val scale = (mMaxCount - index) / mMaxCount.toFloat() * 0.2f + 0.87f
-//                        val scale = getScale(nCount)
+//                        val scale = (mMaxCount - index) / mMaxCount.toFloat() * 0.2f + 0.87f
+                        val scale = getScale(nCount)
 
                         if (nCount == childCount - 1) {
                             bringToTop(view)
@@ -259,6 +259,15 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
         Log.d("CardView", "getScaleXY : $value")
 
         return value
+    }
+
+    private fun getScale(index: Int): Float {
+        return when(index) {
+            0 -> return 0.80f
+            1 -> return 0.90f
+            2 -> return 1.0f
+            else -> 0f
+        }
     }
 
     /**
