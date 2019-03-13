@@ -5,7 +5,6 @@ import android.animation.AnimatorListenerAdapter
 import android.content.Context
 import android.util.AttributeSet
 import android.util.Log
-import android.util.SparseArray
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -39,13 +38,8 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
     // adapter
     private var mCardViewAdapter = CardViewAdapter(context)
 
-    // view 를 관리할 array
-    private val mViewHolder = SparseArray<View>()
-
-    // 뷰의 터치를 감지하여 계산하기 위한 변수.
-    private val downX: Float = 0.toFloat()
-    private var downY: Float = 0.toFloat()
-    private var moveY: Float = 0.toFloat()
+//    // view 를 관리할 array
+//    private val mViewHolder = SparseArray<View>()
 
     // 최대 카드뷰 갯수.
     private var mIntMax = 0
@@ -56,26 +50,21 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
     private var VIEW_SPACE = Utils.convertDipToPixels(context, VIEW_SPACE_VALUE)
 
     // 최대 보여줄 뷰의 갯수.
-    private val MAX_COUNT = 3
+    private val mMaxCount = 3
 
     // 애니메이션 동작시간.
     private val ANIMATION_DURATION = 220
 
+    /**
+     * Init.
+     */
     init {
-
-        removeAllViews()
 
         setOnTouchListener(object : OnSwipeTouchListener(context) {
             override fun onTouch(view: View, event: MotionEvent): Boolean {
                 when (event.action) {
-                    MotionEvent.ACTION_DOWN -> {
-                        val topView = getChildAt(childCount - 1)
-                        moveY = topView.y - event.rawY
-                        downY = event.y
-                        mActionUp = true
-                    }
-                    MotionEvent.ACTION_MOVE -> {}
-                    MotionEvent.ACTION_UP -> {mActionUp = true}
+                    MotionEvent.ACTION_DOWN -> mActionUp = true
+                    MotionEvent.ACTION_UP -> mActionUp = true
                 }
                 return super.onTouch(view, event)
             }
@@ -83,12 +72,8 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
                 super.onSwipeUpDown(action)
                 if (mIsDispatchTouch && mActionUp) {
                     when(action) {
-                        ACTION.ACTION_UP -> {
-                            goUp()
-                        }
-                        ACTION.ACTION_DOWN -> {
-                            goDown()
-                        }
+                        ACTION.ACTION_UP -> goUp()
+                        ACTION.ACTION_DOWN -> goDown()
                     }
                     mActionUp = false
                 }
@@ -100,14 +85,16 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
         })
     }
 
-    fun setData(data: ArrayList<String>) {
+    /**
+     * Set data.
+     */
+    fun setData(data: LinkedHashMap<Int, String>) {
+        mDataSize = data.size
         mCardViewAdapter.setData(data)
+        mCardViewAdapter.setMaxCount(mMaxCount)
         mCardViewAdapter.notifyDataSetChanged()
 
         removeAllViews()
-
-        mDataSize = data.size
-
         initAllView()
     }
 
@@ -115,48 +102,23 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
      * Default view init.
      */
     private fun initAllView() {
+        var data = mCardViewAdapter.getData()
 
-        var datas = mCardViewAdapter.getData()
-
-        mIntMax = mCardViewAdapter.getData().size
-        var adapterCount = mCardViewAdapter.getData().size
-        if (adapterCount < MAX_COUNT) {
-            mIntMax = mCardViewAdapter.getData().size
-        } else {
-            adapterCount = MAX_COUNT
-        }
-
-        mCardViewShowPosition = mIntMax
-        Log.d(TAG, "initAllView : mCardViewShowPosition : $mCardViewShowPosition")
-        Log.d(TAG, "initAllView : mIntMax : $mIntMax")
-
-        val childCount = childCount
-        if (childCount >= adapterCount) {
-            return
-        }
-
-        for (index in 0 until adapterCount) {
-            val convertView = mViewHolder.get(index)
-            val view = mCardViewAdapter.getView(index, convertView, this)
-            Log.d(TAG, "value : " + (view as ItemView).getValue())
-
-            if (index != 0) {
-                val scale = (MAX_COUNT - index - 1) / MAX_COUNT.toFloat() * 0.2f + 0.87f
-
-                view.apply {
-                    scaleX = scale
-                    scaleY = scale
-                    translationY = (index * VIEW_SPACE).toFloat()
-
-                    if(index == MAX_COUNT - 1) {
-                        alpha = 0.5f
-                    }
-                }
+        var createViewCount =
+            if(data.size > mMaxCount) {
+                mMaxCount
+            }
+            else {
+                data.size
             }
 
-            addViewInLayout(view, 0, getParams(view))
+        for (position in 0 until createViewCount) {
+            val view = mCardViewAdapter.getView(position, null, this) as ItemView
+            view.scaleX = 1 - (position % 0.93f)
+            view.scaleY = 1 - (position % 0.93f)
+            view.translationY = (position * VIEW_SPACE).toFloat()
 
-            mViewHolder.put(index, view)
+            addViewInLayout(view, 0, getParams(view))
         }
     }
 
@@ -168,10 +130,7 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
 
         setAllViewShow(false)
 
-        if (!mIsDispatchTouch) {
-            return
-        }
-
+        if (!mIsDispatchTouch) {return}
         mIsDispatchTouch = false
 
         val topView = getChildAt(childCount - 1)
@@ -196,7 +155,7 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
                     for (nCount in 0 until childCount) {
                         val view = getChildAt(nCount)
                         val index = childCount - nCount
-                        val scale = (MAX_COUNT - index) / MAX_COUNT.toFloat() * 0.2f + 0.87f
+                        val scale = (mMaxCount - index) / mMaxCount.toFloat() * 0.2f + 0.87f
 
                         if (nCount == childCount - 1) {
                             bringToTop(view)
@@ -226,8 +185,6 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
                         }
 
                         (view as ItemView).initFlipAnimation(mCardViewShowPosition)
-
-                        mViewHolder.put(childCount - nCount - 1, view)
                     }
 
                     setAllViewShow(true)
@@ -241,20 +198,28 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
      * Add a new view to the 0th position.
      */
     private fun addNewViewLast() {
+        var value = (getChildAt(0) as ItemView).getValue()
+        var data = mCardViewAdapter.getData()
 
-        val lastPosition = getShowPosition(mCardViewShowPosition)
-        Log.d(TAG, "lastPosition : $lastPosition")
-        Log.d(TAG, "mCardViewShowPosition : $mCardViewShowPosition")
-
-        val convertView = mViewHolder.get(0).apply {
-            scaleX = 0.87f
-            scaleY = 0.87f
-            translationY = (VIEW_SPACE * (MAX_COUNT - 1)).toFloat()
+        var position = 0
+        for (index in 0 until data.size) {
+            if(value == data[index]) {
+                position = index
+            }
         }
 
-        val view = mCardViewAdapter.getView(lastPosition, convertView, this)
+        if(position >= data.size - 1) {
+            position = 0
+        }
+        else {
+            position++
+        }
 
-        addViewInLayout(view, 0, getParams(view!!))
+        var view = mCardViewAdapter.getView(position, null, this)!!
+        view.scaleX = 0.87f
+        view.scaleY = 0.87f
+        view.translationY = (VIEW_SPACE * (mMaxCount - 1)).toFloat()
+        addViewInLayout(view, 0, getParams(view))
     }
 
     /**
@@ -281,27 +246,19 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
 
         mIsDispatchTouch = false
 
-        brindToDown()
-
-        if (childCount > MAX_COUNT) {
-            val bottomView = getChildAt(0)
-            removeView(bottomView)
-        } else if (mIntMax < MAX_COUNT) {
-            val bottomView = getChildAt(0)
-            removeView(bottomView)
-        }
+        bringToDown()
 
         for (nCount in 0 until childCount) {
             val view = getChildAt(nCount)
             val index = childCount - nCount
-            val scaleX = (MAX_COUNT - index) / MAX_COUNT.toFloat() * 0.2f + 0.87f
+//            val scaleX = (mMaxCount - index) / mMaxCount.toFloat() * 0.2f + 0.87f
             val topMargin = (index - 1) * VIEW_SPACE
 
             view.animate()
                 .translationY(topMargin.toFloat())
                 .setInterpolator(AccelerateInterpolator())
-                .scaleX(scaleX)
-                .scaleY(scaleX)
+                .scaleX(getScaleX(index))
+                .scaleY(getScaleX(index))
                 .alpha(1f)
                 .setDuration(ANIMATION_DURATION.toLong())
                 .setListener(object : AnimatorListenerAdapter() {
@@ -314,9 +271,9 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
 
             (view as ItemView).initFlipAnimation(mCardViewShowPosition)
 
-            mViewHolder.put(childCount - nCount - 1, view)
+//            mViewHolder.put(childCount - nCount - 1, view)
 
-            if (nCount == 0 && childCount == MAX_COUNT) {
+            if (nCount == 0 && childCount == mMaxCount) {
                 view.animate().alpha(0.5f)
             }
         }
@@ -325,47 +282,89 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
     /**
      * When you add a new view, the new down animation will work.
      */
-    private fun brindToDown() {
+    private fun bringToDown() {
 
-        mCardViewShowPosition--
-        Log.d(TAG, "mCardViewShowPosition-- : $mCardViewShowPosition")
+        var view = getChildAt(0) as ItemView
+        removeView(view)
 
-        val convertView = mViewHolder.get(MAX_COUNT)
-        val newView: View
+        var frontView = getChildAt(childCount - 1) as ItemView
+        var frontValue = frontView.getValue()
+        Log.d(TAG, "frontValue : $frontValue")
 
-        if (mIntMax == MAX_COUNT) {
-            val nextPosition = getShowPosition(mCardViewShowPosition)
-            Log.d(TAG, "nextPosition : $nextPosition")
-            newView = mCardViewAdapter.getView(nextPosition, convertView, this)!!
+        var data = mCardViewAdapter.getData()
+        var position = 0
+        for (index in 0 until data.size) {
+            if(frontValue == data[index]) {
+                position = index
+                break
+            }
+        }
 
-            addViewInLayout(newView, childCount, getParams(newView))
-
-            mViewHolder.put(0, newView)
+        if(position == 0) {
+            position = data.size - 1
         }
         else {
-            val nextPosition = getShowPosition(mCardViewShowPosition)
-            newView = mCardViewAdapter.getView(nextPosition, null, this)!!
-
-            var params: FrameLayout.LayoutParams? = newView.layoutParams as FrameLayout.LayoutParams
-            if (params == null) {
-                params = FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.MATCH_PARENT,
-                    FrameLayout.LayoutParams.MATCH_PARENT
-                )
-                params.gravity = Gravity.CENTER
-            }
-
-            addView(newView)
-
-            mViewHolder.setValueAt(0, newView)
+            position--
         }
+        Log.d(TAG, "position : $position")
 
-        newView.translationY = -2000f
-        newView.animate()
+        view.setData(position, mCardViewAdapter.getData()[position].toString())
+        view.translationY = -2000f
+        view.animate()
             .translationY(0f)
             .alpha(1f)
             .scaleX(1f)
             .scaleY(1f).duration = ANIMATION_DURATION.toLong()
+        addView(view)
+
+
+
+//        mCardViewShowPosition--
+//        Log.d(TAG, "mCardViewShowPosition-- : $mCardViewShowPosition")
+//
+////        val convertView = mViewHolder.get(COUNT)
+//        val newView: View
+//
+//        if (mIntMax == mMaxCount) {
+//            val nextPosition = getShowPosition(mCardViewShowPosition)
+//            Log.d(TAG, "nextPosition : $nextPosition")
+//            newView = mCardViewAdapter.getView(nextPosition, null, this)!!
+//
+//            addViewInLayout(newView, childCount, getParams(newView))
+//
+////            mViewHolder.put(0, newView)
+//        }
+//        else {
+//            val nextPosition = getShowPosition(mCardViewShowPosition)
+//            newView = mCardViewAdapter.getView(nextPosition, null, this)!!
+//
+//            var params: FrameLayout.LayoutParams? = newView.layoutParams as FrameLayout.LayoutParams
+//            if (params == null) {
+//                params = FrameLayout.LayoutParams(
+//                    FrameLayout.LayoutParams.MATCH_PARENT,
+//                    FrameLayout.LayoutParams.MATCH_PARENT
+//                )
+//                params.gravity = Gravity.CENTER
+//            }
+//
+//            addView(newView)
+//
+////            mViewHolder.setValueAt(0, newView)
+//        }
+//
+//        newView.translationY = -2000f
+//        newView.animate()
+//            .translationY(0f)
+//            .alpha(1f)
+//            .scaleX(1f)
+//            .scaleY(1f).duration = ANIMATION_DURATION.toLong()
+    }
+
+    /**
+     * Get scale value.
+     */
+    private fun getScaleX(index: Int): Float {
+        return (mMaxCount - index) / mMaxCount.toFloat() * 0.2f + 0.87f
     }
 
     /**
@@ -389,21 +388,5 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
             view.isEnabled = state
         }
         isEnabled = state
-    }
-
-    /**
-     * It calculates and returns the position value when sweeping up and down.
-     */
-    private fun getShowPosition(showPosition: Int): Int {
-        var returnPosition = 0
-        if (showPosition < 0) {
-            returnPosition = Math.abs(showPosition) % mIntMax
-            if (returnPosition != 0) {
-                returnPosition = mIntMax - returnPosition
-            }
-        } else {
-            returnPosition = showPosition % mIntMax
-        }
-        return returnPosition
     }
 }

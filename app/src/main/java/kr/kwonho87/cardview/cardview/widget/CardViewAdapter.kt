@@ -1,6 +1,9 @@
 package kr.kwonho87.cardview.cardview.widget
 
 import android.content.Context
+import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+import android.util.Log
+import android.util.SparseArray
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
@@ -13,37 +16,44 @@ import kr.kwonho87.cardview.cardview.item.ItemView
  */
 class CardViewAdapter constructor(context: Context) : BaseAdapter() {
 
+    private var max: Int = 0
     private var context = context
-    private lateinit var data: ArrayList<String>
+    private var data: LinkedHashMap<Int, String>? = null
+    private var viewHolder = SparseArray<View>()
 
-    override fun getCount(): Int {
-        return data.size
-    }
 
-    fun setData(data: ArrayList<String>) {
+    fun setData(data: LinkedHashMap<Int, String>) {
         this.data = data
     }
 
-    fun getData(): ArrayList<String> {
-        return this.data
+    fun getData(): LinkedHashMap<Int, String> {
+        return this.data!!
     }
 
-    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View? {
-        var view = convertView
+    fun setMaxCount(max: Int) {
+        this.max = max
 
-        if (view == null) {
-            view = ItemView(context)
+        for (index in 0 until max) {
+            var view = ItemView(context)
             view.apply {
                 layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
             }
+            viewHolder.put(index, view)
         }
+    }
 
-        (view as ItemView).setData(position, data[position])
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View? {
+        var view = viewHolder[position % max] as ItemView
+        view.setData(position, data!![position]!!)
 
         return view
     }
 
-    override fun getItem(arg0: Int): Any? {
+    override fun getCount(): Int {
+        return data!!.size
+    }
+
+    override fun getItem(position: Int): Any? {
         return null
     }
 
