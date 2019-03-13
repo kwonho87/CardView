@@ -6,7 +6,6 @@ import android.content.Context
 import android.util.AttributeSet
 import android.util.Log
 import android.view.Gravity
-import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.widget.FrameLayout
@@ -20,67 +19,28 @@ import kr.kwonho87.cardview.cardview.util.Utils
  */
 class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayout(context, attrs) {
 
-    // TAG
-    private val TAG = "CardView"
-
-    // 현재 보여지는 포지션.
-    private var mCardViewShowPosition = 0
-
-    // 보여줄 데이터 리스트의 전체 사이즈
-    private var mDataSize = 0
-
-    // 애니메이션 동작여부 체크.
-    private var mIsDispatchTouch = true
-
-    // TouchEvent ACTION_UP 여부 체크.
-    private var mActionUp = true
-
-    // adapter
-    private var mCardViewAdapter = CardViewAdapter(context)
-
-//    // view 를 관리할 array
-//    private val mViewHolder = SparseArray<View>()
-
-    // 최대 카드뷰 갯수.
-    private var mIntMax = 0
-
-
-    // 뷰들의 간격.
-    private val VIEW_SPACE_VALUE = 22.0f
-    private var VIEW_SPACE = Utils.convertDipToPixels(context, VIEW_SPACE_VALUE)
-
-    // 최대 보여줄 뷰의 갯수.
-    private val mMaxCount = 3
-
-    // 애니메이션 동작시간.
-    private val ANIMATION_DURATION = 220
+    private var mCardViewAdapter = CardViewAdapter(context)                 // Adapter.
+    private val mMaxCount = 3                                               // The maximum number of views to show.
+    private val mAniDuration = 220L                                         // Animation run time.
+    private val mViewSpace = Utils.convertDipToPixels(context, 22.0f) // The spacing of views.
 
     /**
      * Init.
      */
     init {
-
         setOnTouchListener(object : OnSwipeTouchListener(context) {
-            override fun onTouch(view: View, event: MotionEvent): Boolean {
-                when (event.action) {
-                    MotionEvent.ACTION_DOWN -> mActionUp = true
-                    MotionEvent.ACTION_UP -> mActionUp = true
-                }
-                return super.onTouch(view, event)
-            }
             override fun onSwipeUpDown(action: ACTION) {
                 super.onSwipeUpDown(action)
-                if (mIsDispatchTouch && mActionUp) {
+                if (getIsEnabled()) {
                     when(action) {
                         ACTION.ACTION_UP -> goUp()
                         ACTION.ACTION_DOWN -> goDown()
                     }
-                    mActionUp = false
                 }
             }
             override fun onClick() {
                 super.onClick()
-                Log.d(TAG, "onClick")
+                Log.d("CardView", "onClick")
             }
         })
     }
@@ -89,34 +49,25 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
      * Set data.
      */
     fun setData(data: LinkedHashMap<Int, String>) {
-        mDataSize = data.size
         mCardViewAdapter.setData(data)
         mCardViewAdapter.setMaxCount(mMaxCount)
         mCardViewAdapter.notifyDataSetChanged()
 
         removeAllViews()
-        initAllView()
+        initAllView(data)
     }
 
     /**
      * Default view init.
      */
-    private fun initAllView() {
-        var data = mCardViewAdapter.getData()
+    private fun initAllView(data: LinkedHashMap<Int, String>) {
+        var maxViewCount = if(data.size > mMaxCount) mMaxCount else data.size
 
-        var createViewCount =
-            if(data.size > mMaxCount) {
-                mMaxCount
-            }
-            else {
-                data.size
-            }
-
-        for (position in 0 until createViewCount) {
-            val view = mCardViewAdapter.getView(position, null, this) as ItemView
-            view.scaleX = 1 - (position % 0.93f)
-            view.scaleY = 1 - (position % 0.93f)
-            view.translationY = (position * VIEW_SPACE).toFloat()
+        for (index in 0 until maxViewCount) {
+            val view = mCardViewAdapter.getView(index, null, this) as ItemView
+            view.scaleX = getScale(index)
+            view.scaleY = getScale(index)
+            view.translationY = getTranslation(index)
 
             addViewInLayout(view, 0, getParams(view))
         }
@@ -126,43 +77,41 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
      * Raise the first card up.
      */
     private fun goUp() {
-        Log.d(TAG, "goUp : $mIsDispatchTouch")
 
-        setAllViewShow(false)
+        // Touch Lock.
+        setIsEnabled(false)
 
-        if (!mIsDispatchTouch) {return}
-        mIsDispatchTouch = false
-
+        // Move the top view up through the animation.
         val topView = getChildAt(childCount - 1)
         topView.animate()
             .translationY(-(topView.translationY + topView.height))
             .alpha(1f)
             .scaleX(1.0f)
             .scaleY(1.0f)
-            .setDuration(ANIMATION_DURATION.toLong())
+            .setDuration(mAniDuration)
             .setInterpolator(AccelerateInterpolator())
             .setListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
                     super.onAnimationEnd(animation)
 
+                    // If the animation of the top view ends, remove it from the screen.
                     removeView(topView)
 
+                    // Create a new view and add it to the bottom.
                     addNewViewLast()
 
-                    mCardViewShowPosition++
-                    Log.d(TAG, "mCardViewShowPosition++ : $mCardViewShowPosition")
-
-                    for (nCount in 0 until childCount) {
+                    for(nCount in 0 until childCount) {
                         val view = getChildAt(nCount)
                         val index = childCount - nCount
                         val scale = (mMaxCount - index) / mMaxCount.toFloat() * 0.2f + 0.87f
+//                        val scale = getScale(nCount)
 
                         if (nCount == childCount - 1) {
                             bringToTop(view)
 
                         }
                         else {
-                            val margin = (index - 1) * VIEW_SPACE
+                            val margin = (index - 1) * mViewSpace
 
                             if (nCount == 0 && childCount > 2) {
                                 view.animate()
@@ -171,7 +120,7 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
                                     .setListener(null)
                                     .scaleX(scale)
                                     .scaleY(scale)
-                                    .alpha(0.5f).duration = ANIMATION_DURATION.toLong()
+                                    .alpha(0.5f).duration = mAniDuration
                             }
                             else {
                                 view.animate()
@@ -180,16 +129,13 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
                                     .setListener(null)
                                     .scaleX(scale)
                                     .scaleY(scale)
-                                    .alpha(1f).duration = ANIMATION_DURATION.toLong()
+                                    .alpha(1f).duration = mAniDuration
                             }
                         }
-
-                        (view as ItemView).initFlipAnimation(mCardViewShowPosition)
                     }
 
-                    setAllViewShow(true)
-
-                    mIsDispatchTouch = true
+                    // Touch Unlock.
+                    setIsEnabled(true)
                 }
             })
     }
@@ -198,12 +144,12 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
      * Add a new view to the 0th position.
      */
     private fun addNewViewLast() {
-        var value = (getChildAt(0) as ItemView).getValue()
+        var lastViewValue = (getChildAt(0) as ItemView).getValue()
         var data = mCardViewAdapter.getData()
 
         var position = 0
         for (index in 0 until data.size) {
-            if(value == data[index]) {
+            if(lastViewValue == data[index]) {
                 position = index
             }
         }
@@ -218,7 +164,7 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
         var view = mCardViewAdapter.getView(position, null, this)!!
         view.scaleX = 0.87f
         view.scaleY = 0.87f
-        view.translationY = (VIEW_SPACE * (mMaxCount - 1)).toFloat()
+        view.translationY = (mViewSpace * (mMaxCount - 1)).toFloat()
         addViewInLayout(view, 0, getParams(view))
     }
 
@@ -230,7 +176,7 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
             .translationY(0f)
             .scaleX(1.0f)
             .scaleY(1.0f)
-            .setDuration(ANIMATION_DURATION.toLong())
+            .setDuration(mAniDuration)
             .alpha(1f).interpolator = AccelerateInterpolator()
     }
 
@@ -238,21 +184,14 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
      * Bring the card up again.
      */
     private fun goDown() {
-        Log.d(TAG, "goDown : $mIsDispatchTouch")
-
-        if (!mIsDispatchTouch) {
-            return
-        }
-
-        mIsDispatchTouch = false
+        setIsEnabled(false)
 
         bringToDown()
 
         for (nCount in 0 until childCount) {
             val view = getChildAt(nCount)
             val index = childCount - nCount
-//            val scaleX = (mMaxCount - index) / mMaxCount.toFloat() * 0.2f + 0.87f
-            val topMargin = (index - 1) * VIEW_SPACE
+            val topMargin = (index - 1) * mViewSpace
 
             view.animate()
                 .translationY(topMargin.toFloat())
@@ -260,18 +199,13 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
                 .scaleX(getScaleX(index))
                 .scaleY(getScaleX(index))
                 .alpha(1f)
-                .setDuration(ANIMATION_DURATION.toLong())
+                .setDuration(mAniDuration)
                 .setListener(object : AnimatorListenerAdapter() {
                     override fun onAnimationEnd(animation: Animator) {
-                        Log.i(TAG, "onAnimationEnd")
-
-                        mIsDispatchTouch = true
+                        setIsEnabled(true)
                     }
                 })
 
-            (view as ItemView).initFlipAnimation(mCardViewShowPosition)
-
-//            mViewHolder.put(childCount - nCount - 1, view)
 
             if (nCount == 0 && childCount == mMaxCount) {
                 view.animate().alpha(0.5f)
@@ -289,7 +223,6 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
 
         var frontView = getChildAt(childCount - 1) as ItemView
         var frontValue = frontView.getValue()
-        Log.d(TAG, "frontValue : $frontValue")
 
         var data = mCardViewAdapter.getData()
         var position = 0
@@ -306,7 +239,6 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
         else {
             position--
         }
-        Log.d(TAG, "position : $position")
 
         view.setData(position, mCardViewAdapter.getData()[position].toString())
         view.translationY = -2000f
@@ -314,57 +246,31 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
             .translationY(0f)
             .alpha(1f)
             .scaleX(1f)
-            .scaleY(1f).duration = ANIMATION_DURATION.toLong()
+            .scaleY(1f).duration = mAniDuration
         addView(view)
-
-
-
-//        mCardViewShowPosition--
-//        Log.d(TAG, "mCardViewShowPosition-- : $mCardViewShowPosition")
-//
-////        val convertView = mViewHolder.get(COUNT)
-//        val newView: View
-//
-//        if (mIntMax == mMaxCount) {
-//            val nextPosition = getShowPosition(mCardViewShowPosition)
-//            Log.d(TAG, "nextPosition : $nextPosition")
-//            newView = mCardViewAdapter.getView(nextPosition, null, this)!!
-//
-//            addViewInLayout(newView, childCount, getParams(newView))
-//
-////            mViewHolder.put(0, newView)
-//        }
-//        else {
-//            val nextPosition = getShowPosition(mCardViewShowPosition)
-//            newView = mCardViewAdapter.getView(nextPosition, null, this)!!
-//
-//            var params: FrameLayout.LayoutParams? = newView.layoutParams as FrameLayout.LayoutParams
-//            if (params == null) {
-//                params = FrameLayout.LayoutParams(
-//                    FrameLayout.LayoutParams.MATCH_PARENT,
-//                    FrameLayout.LayoutParams.MATCH_PARENT
-//                )
-//                params.gravity = Gravity.CENTER
-//            }
-//
-//            addView(newView)
-//
-////            mViewHolder.setValueAt(0, newView)
-//        }
-//
-//        newView.translationY = -2000f
-//        newView.animate()
-//            .translationY(0f)
-//            .alpha(1f)
-//            .scaleX(1f)
-//            .scaleY(1f).duration = ANIMATION_DURATION.toLong()
     }
 
     /**
      * Get scale value.
      */
     private fun getScaleX(index: Int): Float {
-        return (mMaxCount - index) / mMaxCount.toFloat() * 0.2f + 0.87f
+        return (mMaxCount - index) / mMaxCount.toFloat() * 0.2f + 0.93f
+    }
+
+    /**
+     * Get scale value.
+     */
+    private fun getScale(index: Int): Float {
+        var value = 1 - (index % 0.93f)
+        Log.d("CardView", "getScale value : $value")
+        return value
+    }
+
+    /**
+     * Get translationY
+     */
+    private fun getTranslation(index: Int): Float {
+        return (index * mViewSpace).toFloat()
     }
 
     /**
@@ -382,11 +288,18 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
     /**
      * Enable / disable all views including the child view.
      */
-    private fun setAllViewShow(state: Boolean) {
+    private fun setIsEnabled(state: Boolean) {
         for (nCount in 0 until childCount) {
             val view = getChildAt(nCount)
             view.isEnabled = state
         }
         isEnabled = state
+    }
+
+    /**
+     * Get enable / disable first child view.
+     */
+    private fun getIsEnabled(): Boolean {
+        return getChildAt(0).isEnabled
     }
 }
