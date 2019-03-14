@@ -80,17 +80,17 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
 
         for (index in 0 until maxViewCount) {
             var position = maxViewCount - index - 1
-            val scale = getScale(position)
+            val scale = getScale(position, maxViewCount)
             val margin = getMargin(position)
 
-//            val view = mCardViewAdapter.getView(index, null, this)!!
-//            view.scaleX = scale
-//            view.scaleY = scale
-//            view.translationY = margin
-            val view = mCardViewAdapter.getView(index, null, this) as ItemView
-            view.scaleX = 1 - (index % 0.93f)
-            view.scaleY = 1 - (index % 0.93f)
-            view.translationY = (index * mViewSpace).toFloat()
+            val view = mCardViewAdapter.getView(index, null, this)!!
+            view.scaleX = scale
+            view.scaleY = scale
+            view.translationY = margin
+//            val view = mCardViewAdapter.getView(index, null, this) as ItemView
+//            view.scaleX = 1 - (index % 0.93f)
+//            view.scaleY = 1 - (index % 0.93f)
+//            view.translationY = (index * mViewSpace).toFloat()
 
             addViewInLayout(view, 0, getParams(view))
         }
@@ -128,7 +128,7 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
 
                         // Get child view.
                         val view = getChildAt(index)
-                        val scale = getScale(index)
+                        val scale = getScale(index, childCount)
 
                         // If it is the last child view.
                         if (index == childCount - 1) {
@@ -158,53 +158,16 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
      * Add a new view to the 0th position.
      */
     private fun addNewViewLast() {
-//        var lastViewValue = (getChildAt(0) as ItemView).getValue()
-        var lastPosition = (getChildAt(0) as ItemView).getPosition()
-        Log.d("CardView", "lastPosition : $lastPosition")
 
-        var data = mCardViewAdapter.getData()
+        var nextPosition = mCardViewAdapter.getNextPosition()
+        Log.d("CardView", "nextPosition : $nextPosition")
 
-//        var nextValue = data.stream()
-//            .filter { i -> i > lastViewValue }
-//            .findFirst()
-//            .orElse(data[0])
-//
-//
-//
-////            .forEach { i -> Log.d("CardView", "value : $i") }
-//        Log.d("CardView", "nextValue : $nextValue")
-//        Log.d("CardView", "next index : ${data.indexOf(nextValue)}")
+        var view = mCardViewAdapter.getView(nextPosition, null, this)!!
+        val scale = getScale(0, childCount)
+        val margin = (mViewSpace * (mMaxCount - 1)).toFloat()
 
-        var position = 0
-//        for (index in 0 until data.size) {
-//            if(lastPosition == data[index]) {
-//                position = index
-//            }
-//        }
-
-        if(lastPosition >= data.size - 1) {
-            position = 0
-        }
-        else {
-            position = lastPosition + 1
-        }
-        Log.d("CardView", "position : $position")
-
-//        var currentPosition = 0
-//        if(lastPosition + 1 > data.size - 1) {
-//            currentPosition = 0
-//        }
-//        else {
-//            currentPosition = lastPosition + 1
-//        }
-//        Log.d("CardView", "currentPosition : $currentPosition")
-
-        var view = mCardViewAdapter.getView(position, null, this)!!
-//        val scale = getScale(0, childCount)
-//        val margin = (mViewSpace * (mMaxCount - 1)).toFloat()
-
-        view.scaleX = 0.87f
-        view.scaleY = 0.87f
+        view.scaleX = scale
+        view.scaleY = scale
         view.translationY = (mViewSpace * (mMaxCount - 1)).toFloat()
         addViewInLayout(view, 0, getParams(view))
     }
@@ -234,7 +197,7 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
 
         for (index in 0 until childCount) {
             val view = getChildAt(index)
-            val scale = getScale(index)
+            val scale = getScale(index, childCount)
             val margin = getMargin(index)
 
             if (index != childCount - 1) {
@@ -292,29 +255,29 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
         addView(view)
     }
 
-//    /**
-//     *
-//     */
-//    private fun getScale(index: Int, childCount: Int): Float {
-//        val count = index % childCount
-////        Log.d("CardView", "getScale : $count")
-//
-//        return when(count) {
-//            0 -> return 0.87f
-//            1 -> return 0.93f
-//            2 -> return 1.0f
-//            else -> 0f
-//        }
-//    }
+    /**
+     *
+     */
+    private fun getScale(index: Int, childCount: Int): Float {
+        val count = index % childCount
+//        Log.d("CardView", "getScale : $count")
 
-    private fun getScale(index: Int): Float {
-        return when(index) {
+        return when(count) {
             0 -> return 0.87f
             1 -> return 0.93f
             2 -> return 1.0f
             else -> 0f
         }
     }
+
+//    private fun getScale(index: Int): Float {
+//        return when(index) {
+//            0 -> return 0.87f
+//            1 -> return 0.93f
+//            2 -> return 1.0f
+//            else -> 0f
+//        }
+//    }
 
     /**
      *

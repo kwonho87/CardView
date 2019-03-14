@@ -17,7 +17,6 @@
 package kr.kwonho87.cardview.cardview.widget
 
 import android.content.Context
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
 import android.util.Log
 import android.util.SparseArray
 import android.view.View
@@ -36,10 +35,14 @@ class CardViewAdapter constructor(context: Context) : BaseAdapter() {
     private var context = context
     private var data: ArrayList<String>? = null
     private var viewHolder = SparseArray<View>()
+    private var currentPosition = 0
+    private var dataSize = 0
 
 
     fun setData(data: ArrayList<String>) {
         this.data = data
+        this.dataSize = data.size
+        Log.d("CardViewAdapter", "dataSize : $dataSize")
     }
 
     fun getData(): ArrayList<String> {
@@ -62,7 +65,24 @@ class CardViewAdapter constructor(context: Context) : BaseAdapter() {
         var view = viewHolder[position % max] as ItemView
         view.setData(position, data!![position]!!)
 
+        currentPosition++
+
         return view
+    }
+
+    fun getPrevPosition(): Int {
+        currentPosition--
+        if(currentPosition < 0) {
+            currentPosition = dataSize - 1
+        }
+        return this.currentPosition
+    }
+
+    fun getNextPosition(): Int {
+        if(currentPosition > data!!.size - 1) {
+            currentPosition = 0
+        }
+        return this.currentPosition
     }
 
     override fun getCount(): Int {
