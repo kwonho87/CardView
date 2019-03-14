@@ -100,37 +100,23 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
                     // Create a new view and add it to the bottom.
                     addNewViewLast()
 
-                    for(nCount in 0 until childCount) {
-                        val view = getChildAt(nCount)
-                        val index = childCount - nCount
-//                        val scale = (mMaxCount - index) / mMaxCount.toFloat() * 0.2f + 0.87f
-                        val scale = getScale(nCount)
+                    for(index in 0 until childCount) {
+                        val view = getChildAt(index)
+                        val scale = getScale(index)
 
-                        if (nCount == childCount - 1) {
+                        if (index == childCount - 1) {
                             bringToTop(view)
 
                         }
                         else {
-                            val margin = (index - 1) * mViewSpace
-
-                            if (nCount == 0 && childCount > 2) {
-                                view.animate()
-                                    .translationY(margin.toFloat())
-                                    .setInterpolator(AccelerateInterpolator())
-                                    .setListener(null)
-                                    .scaleX(scale)
-                                    .scaleY(scale)
-                                    .alpha(0.5f).duration = mAniDuration
-                            }
-                            else {
-                                view.animate()
-                                    .translationY(margin.toFloat())
-                                    .setInterpolator(AccelerateInterpolator())
-                                    .setListener(null)
-                                    .scaleX(scale)
-                                    .scaleY(scale)
-                                    .alpha(1f).duration = mAniDuration
-                            }
+                            val margin = getMargin(index)
+                            view.animate()
+                                .translationY(margin)
+                                .setInterpolator(AccelerateInterpolator())
+                                .setListener(null)
+                                .scaleX(scale)
+                                .scaleY(scale)
+                                .duration = mAniDuration
                         }
                     }
 
@@ -263,9 +249,18 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
 
     private fun getScale(index: Int): Float {
         return when(index) {
-            0 -> return 0.80f
-            1 -> return 0.90f
+            0 -> return 0.87f
+            1 -> return 0.93f
             2 -> return 1.0f
+            else -> 0f
+        }
+    }
+
+    private fun getMargin(index: Int): Float {
+        return when(index) {
+            0 -> return 116f
+            1 -> return 58f
+            2 -> return 0f
             else -> 0f
         }
     }
