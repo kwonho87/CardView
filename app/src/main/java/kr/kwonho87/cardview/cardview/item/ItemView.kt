@@ -30,7 +30,6 @@ import kr.kwonho87.cardview.cardview.util.Utils
  */
 class ItemView constructor(context: Context) : RelativeLayout(context) {
 
-    private var position: Int = -1
     private lateinit var value: String
 
     init {
@@ -41,19 +40,14 @@ class ItemView constructor(context: Context) : RelativeLayout(context) {
     }
 
     fun onClick() {
-        Toast.makeText(context, position, Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, value, Toast.LENGTH_SHORT).show()
     }
 
     fun getValue(): String {
         return this.value
     }
 
-    fun getPosition(): Int {
-        return this.position
-    }
-
-    fun setData(position: Int, value: String) {
-        this.position = position
+    fun setData(value: String) {
         this.value = value
 
         title.text = value

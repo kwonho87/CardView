@@ -267,7 +267,7 @@ class CardView constructor(context: Context, attrs: AttributeSet) : FrameLayout(
             position--
         }
 
-        view.setData(position, mCardViewAdapter.getData()[position].toString())
+        view.setData(mCardViewAdapter.getData()[position])
         view.translationY = -2000f
         view.animate()
             .translationY(0f)

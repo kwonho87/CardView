@@ -87,10 +87,6 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
             view.scaleX = scale
             view.scaleY = scale
             view.translationY = margin
-//            val view = mCardViewAdapter.getView(index, null, this) as ItemView
-//            view.scaleX = 1 - (index % 0.93f)
-//            view.scaleY = 1 - (index % 0.93f)
-//            view.translationY = (index * mViewSpace).toFloat()
 
             addViewInLayout(view, 0, getParams(view))
         }
@@ -121,7 +117,7 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
                     removeView(topView)
 
                     // Create a new view and add it to the bottom.
-                    addNewViewLast()
+                    addNewViewLast(getChildAt(0))
 
                     // Repeat as many child views.
                     for(index in 0 until childCount) {
@@ -157,18 +153,20 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
     /**
      * Add a new view to the 0th position.
      */
-    private fun addNewViewLast() {
+    private fun addNewViewLast(lastView: View) {
+        var lastPosition = lastView.tag as Int + 1
 
-        var nextPosition = mCardViewAdapter.getNextPosition()
-        Log.d("CardView", "nextPosition : $nextPosition")
+        if(lastPosition > mCardViewAdapter.getData().size - 1) {
+            lastPosition = 0
+        }
 
-        var view = mCardViewAdapter.getView(nextPosition, null, this)!!
+        var view = mCardViewAdapter.getView(lastPosition, null, this)!!
         val scale = getScale(0, childCount)
         val margin = (mViewSpace * (mMaxCount - 1)).toFloat()
 
         view.scaleX = scale
         view.scaleY = scale
-        view.translationY = (mViewSpace * (mMaxCount - 1)).toFloat()
+        view.translationY = margin
         addViewInLayout(view, 0, getParams(view))
     }
 
@@ -223,36 +221,24 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
      */
     private fun bringToDown() {
 
-        var view = getChildAt(0) as ItemView
-        removeView(view)
+        var lastView = getChildAt(0)
+        removeView(lastView)
 
-        var frontView = getChildAt(childCount - 1) as ItemView
-        var frontValue = frontView.getValue()
+        var firstView = getChildAt(childCount - 1)
+        var firstPosition = firstView.tag as Int - 1
 
-        var data = mCardViewAdapter.getData()
-        var position = 0
-        for (index in 0 until data.size) {
-            if(frontValue == data[index]) {
-                position = index
-                break
-            }
+        if(firstPosition < 0) {
+            firstPosition = mCardViewAdapter.getData().size - 1
         }
 
-        if(position == 0) {
-            position = data.size - 1
-        }
-        else {
-            position--
-        }
-
-        view.setData(position, mCardViewAdapter.getData()[position].toString())
-        view.translationY = -2000f
-        view.animate()
+        var newView = mCardViewAdapter.getView(firstPosition, null, this)!!
+        newView.translationY = -2000f
+        newView.animate()
             .translationY(0f)
             .scaleX(1f)
             .scaleY(1f)
             .duration = mAniDuration
-        addView(view)
+        addView(newView)
     }
 
     /**
