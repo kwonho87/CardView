@@ -25,7 +25,6 @@ import android.view.Gravity
 import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.widget.FrameLayout
-import kr.kwonho87.cardview.cardview.item.ItemView
 import kr.kwonho87.cardview.cardview.listener.OnSwipeTouchListener
 import kr.kwonho87.cardview.cardview.util.Utils
 
@@ -39,6 +38,7 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
     private val mMaxCount = 3                                               // The maximum number of views to show.
     private val mAniDuration = 220L                                         // Animation run time.
     private val mViewSpace = Utils.convertDipToPixels(context, 22.0f) // The spacing of views.
+    private var mShowIndex = 0
 
     /**
      * Init.
@@ -68,20 +68,21 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
         mCardViewAdapter.setData(data)
         mCardViewAdapter.setMaxCount(mMaxCount)
 
+        this.mShowIndex = if(data.size > mMaxCount) mMaxCount else data.size
+
         removeAllViews()
-        initAllView(data)
+        initAllView()
     }
 
     /**
      * Default view init.
      */
-    private fun initAllView(data: ArrayList<String>) {
-        var maxViewCount = if(data.size > mMaxCount) mMaxCount else data.size
-
-        for (index in 0 until maxViewCount) {
-            var position = maxViewCount - index - 1
-            val scale = getScale(position, maxViewCount)
+    private fun initAllView() {
+        for (index in 0 until mShowIndex) {
+            var position = mShowIndex - index - 1
+            val scale = getScale(index)
             val margin = getMargin(position)
+            Log.d("CardView", "fun init() index : $position, scale : $scale, margin : $margin")
 
             val view = mCardViewAdapter.getView(index, null, this)!!
             view.scaleX = scale
@@ -90,6 +91,10 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
 
             addViewInLayout(view, 0, getParams(view))
         }
+
+//        2019-03-15 13:42:04.521 13213-13213/kr.kwonho87.cardview D/CardView: fun init() index : 2, scale : 1.0, margin : 0.0
+//        2019-03-15 13:42:04.522 13213-13213/kr.kwonho87.cardview D/CardView: fun init() index : 1, scale : 0.93666667, margin : 58.0
+//        2019-03-15 13:42:04.522 13213-13213/kr.kwonho87.cardview D/CardView: fun init() index : 0, scale : 0.87, margin : 116.0
     }
 
     /**
@@ -119,30 +124,64 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
                     // Create a new view and add it to the bottom.
                     addNewViewLast(getChildAt(0))
 
-                    // Repeat as many child views.
+                    Log.d("CardView", "for childCount : $childCount")
+//                    for(index in childCount - 1 downTo 0) {
                     for(index in 0 until childCount) {
+                        var position = mShowIndex - index - 1
+
+                        Log.d("CardView", "for index : $position")
 
                         // Get child view.
                         val view = getChildAt(index)
-                        val scale = getScale(index, childCount)
+                        val scale = getScale(position)
+                        val margin = getMargin(index)
+                        Log.d("CardView", "fun anim() position : $position, scale : $scale, margin : $margin")
 
-                        // If it is the last child view.
-                        if (index == childCount - 1) {
-                            bringToTop(view)
+//                        // If it is the last child view.
+//                        if (index == childCount - 1) {
+//                            bringToTop(view)
+//                        }
+//                        else {
+//                            view.animate()
+//                                .translationY(margin)
+//                                .setInterpolator(AccelerateInterpolator())
+//                                .setListener(null)
+//                                .scaleX(scale)
+//                                .scaleY(scale)
+//                                .duration = mAniDuration
+//                        }
 
-                        }
-                        else {
-                            val margin = getMargin(index)
-
-                            view.animate()
-                                .translationY(margin)
-                                .setInterpolator(AccelerateInterpolator())
-                                .setListener(null)
-                                .scaleX(scale)
-                                .scaleY(scale)
-                                .duration = mAniDuration
-                        }
+                        view.animate()
+                            .translationY(margin)
+                            .setInterpolator(AccelerateInterpolator())
+                            .setListener(null)
+                            .scaleX(scale)
+                            .scaleY(scale)
+                            .duration = mAniDuration
                     }
+
+//                    // Repeat as many child views.
+//                    for(index in 0 until childCount) {
+//
+//                        // Get child view.
+//                        val view = getChildAt(childCount - index)
+//                        val scale = getScale(index)
+//                        val margin = getMargin(index)
+//
+//                        // If it is the last child view.
+//                        if (index == childCount - 1) {
+//                            bringToTop(view)
+//                        }
+//                        else {
+//                            view.animate()
+//                                .translationY(margin)
+//                                .setInterpolator(AccelerateInterpolator())
+//                                .setListener(null)
+//                                .scaleX(scale)
+//                                .scaleY(scale)
+//                                .duration = mAniDuration
+//                        }
+//                    }
 
                     // Touch Unlock.
                     setIsEnabled(true)
@@ -154,15 +193,13 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
      * Add a new view to the 0th position.
      */
     private fun addNewViewLast(lastView: View) {
-        var lastPosition = lastView.tag as Int + 1
+        var lastPosition = lastView.tag as Int
+        var nextPosition = if((lastPosition + 1) > mCardViewAdapter.getData().size - 1) 0 else lastPosition + 1
 
-        if(lastPosition > mCardViewAdapter.getData().size - 1) {
-            lastPosition = 0
-        }
-
-        var view = mCardViewAdapter.getView(lastPosition, null, this)!!
-        val scale = getScale(0, childCount)
-        val margin = (mViewSpace * (mMaxCount - 1)).toFloat()
+        var view = mCardViewAdapter.getView(nextPosition, null, this)!!
+        val scale = getScale(mShowIndex - 1)
+        val margin = getMargin(0)
+        Log.d("CardView", "fun addNewViewLast() nextPosition : $nextPosition, scale : $scale, margin : $margin")
 
         view.scaleX = scale
         view.scaleY = scale
@@ -195,7 +232,7 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
 
         for (index in 0 until childCount) {
             val view = getChildAt(index)
-            val scale = getScale(index, childCount)
+            val scale = getScale(index)
             val margin = getMargin(index)
 
             if (index != childCount - 1) {
@@ -244,37 +281,29 @@ class CardViewEx constructor(context: Context, attrs: AttributeSet) : FrameLayou
     /**
      *
      */
-    private fun getScale(index: Int, childCount: Int): Float {
-        val count = index % childCount
-//        Log.d("CardView", "getScale : $count")
-
-        return when(count) {
-            0 -> return 0.87f
-            1 -> return 0.93f
-            2 -> return 1.0f
-            else -> 0f
-        }
+    private fun getScale(index: Int): Float {
+        var scale = (mMaxCount - index - 1) / mMaxCount.toFloat() * 0.2f + 0.87f
+//        Log.d("CardView", "scale : $scale, index : $index")
+        return if(scale > 1.0f) return 1.0f else scale
     }
-
-//    private fun getScale(index: Int): Float {
-//        return when(index) {
-//            0 -> return 0.87f
-//            1 -> return 0.93f
-//            2 -> return 1.0f
-//            else -> 0f
-//        }
-//    }
 
     /**
      *
      */
     private fun getMargin(index: Int): Float {
-        return when(index) {
-            0 -> return 116f
-            1 -> return 58f
-            2 -> return 0f
-            else -> 0f
-        }
+//        var margin = (index - 1) * mViewSpace
+        var margin = mViewSpace * (mMaxCount - index - 1)
+//        var margin = mViewSpace * index
+//        Log.d("CardView", "margin : $margin, index : $index")
+
+        return margin.toFloat()
+
+//        return when(index) {
+//            0 -> return 116f
+//            1 -> return 58f
+//            2 -> return 0f
+//            else -> 0f
+//        }
     }
 
     /**
