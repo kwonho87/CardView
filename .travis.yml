@@ -1,29 +1,53 @@
 language: android
+jdk:
+- oraclejdk8
+sudo: required
 
-licenses:
+addons:
+  apt:
+    packages:
+    - oracle-java8-installer
+    - oracle-java8-set-default
+
+env:
+  global:
+  - ADB_INSTALL_TIMEOUT=20
+
+android:
+  components:
+  - platform-tools
+  - tools
+  - build-tools-25.0.2
+  - android-25
+  - android-21
+  - extra-google-google_play_services
+  - extra-google-m2repository
+  - extra-android-support
+  - extra-android-m2repository
+  - sys-img-armeabi-v7a-android-21
+
+  licenses:
   - 'android-sdk-license-.+'
 
+before_install:
+- chmod +x gradlew
+- android list targets
+- echo no | android create avd --force -n test -t android-21 --abi armeabi-v7a
+- emulator -avd test -no-skin -no-audio -no-window &
+- android-wait-for-emulator
+- adb shell input keyevent 82 &
 
-#android:
-#  components:
-#  - tools
-#  - build-tools-28.0.1
-#  - android-28
-#  - platform-tools
-#  - extra-android-support # because I'm use support library
-#  - extra-android-m2repository # because I'm use support library
-#  licenses:
-#  - '.+'
-#
-#sudo: required
-#
-#jdk:
-#- oraclejdk8
-#
-#install: true
-#
-#before_script:
-#- chmod +x gradlew
-#
-#script:
-#- ./gradlew assembleRelease --stacktrace
+before_script:
+- android-wait-for-emulator
+- adb shell input keyevent 82 &
+
+script:
+- ./gradlew assemble -Dorg.gradle.java.home=/usr/lib/jvm/java-8-oracle
+
+deploy:
+  provider: releases
+  api_key: "2379bed7e3ba9c63be218cd36041eab338912703"
+  file: "https://github.com/kwonho87/CardView/app/build/outputs/apk/app-debug.apk"
+  skip_cleanup: true
+  on:
+    tags: true
