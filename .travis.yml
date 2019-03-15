@@ -1,6 +1,9 @@
 language: android
+
 licenses:
-- '.+'
+  - 'android-sdk-license-.+'
+
+
 #android:
 #  components:
 #  - tools
