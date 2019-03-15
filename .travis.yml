@@ -1,4 +1,6 @@
 language: android
+licenses:
+- '.+'
 #android:
 #  components:
 #  - tools
