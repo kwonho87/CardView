@@ -65,10 +65,10 @@ class CardView constructor(context: Context, attrs: AttributeSet) : FrameLayout(
      * Set data.
      */
     fun setData(data: ArrayList<String>) {
+        this.mShowIndex = if(data.size > MAX_COUNT) MAX_COUNT else data.size
+
         mCardViewAdapter.setData(data)
         mCardViewAdapter.setMaxCount(MAX_COUNT)
-
-        this.mShowIndex = if(data.size > MAX_COUNT) MAX_COUNT else data.size
 
         removeAllViews()
         initAllView()
@@ -181,7 +181,7 @@ class CardView constructor(context: Context, attrs: AttributeSet) : FrameLayout(
     }
 
     /**
-     *
+     * Create a view to show at the top.
      */
     private fun addNewViewFirst() {
         var lastView = getChildAt(0)
@@ -199,7 +199,7 @@ class CardView constructor(context: Context, attrs: AttributeSet) : FrameLayout(
     }
 
     /**
-     *
+     * Returns the scale value by index.
      */
     private fun getScale(index: Int): Float {
         var scale = (MAX_COUNT - index - 1) / MAX_COUNT.toFloat() * 0.2f + 0.87f
@@ -207,7 +207,7 @@ class CardView constructor(context: Context, attrs: AttributeSet) : FrameLayout(
     }
 
     /**
-     *
+     * Returns the margin value by index.
      */
     private fun getMargin(index: Int): Float {
         var margin = mViewSpace * (MAX_COUNT - index - 1)
