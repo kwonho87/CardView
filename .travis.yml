@@ -1,23 +1,53 @@
 language: android
+jdk:
+- oraclejdk8
+sudo: required
+
+addons:
+  apt:
+    packages:
+    - oracle-java8-installer
+    - oracle-java8-set-default
+
+env:
+  global:
+  - ADB_INSTALL_TIMEOUT=20
+
 android:
   components:
-  # Uncomment the lines below if you want to
-  # use the latest revision of Android SDK Tools
-  # - tools
-  # - platform-tools
-
-  # The BuildTools version used by your project
-  - build-tools-26.0.2
-
-  # The SDK version used to compile your project
-  - android-28.0.0
-
-  # Additional components
+  - platform-tools
+  - tools
+  - build-tools-25.0.2
+  - android-25
+  - android-21
   - extra-google-google_play_services
   - extra-google-m2repository
+  - extra-android-support
   - extra-android-m2repository
+  - sys-img-armeabi-v7a-android-21
 
-  # Specify at least one system image,
-  # if you need to run emulator(s) during your tests
-  - sys-img-x86-android-26
-  - sys-img-armeabi-v7a-android-17
+  licenses:
+  - 'android-sdk-license-.+'
+
+before_install:
+- chmod +x gradlew
+- android list targets
+- echo no | android create avd --force -n test -t android-21 --abi armeabi-v7a
+- emulator -avd test -no-skin -no-audio -no-window &
+- android-wait-for-emulator
+- adb shell input keyevent 82 &
+
+before_script:
+- android-wait-for-emulator
+- adb shell input keyevent 82 &
+
+script:
+- ./gradlew assemble -Dorg.gradle.java.home=/usr/lib/jvm/java-8-oracle
+
+deploy:
+  provider: releases
+  api_key: "github api key"
+  file: "https://github.com/kwonho87/CardView/app/build/outputs/apk/app-debug.apk"
+  skip_cleanup: true
+  on:
+    tags: true
