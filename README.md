@@ -5,7 +5,7 @@ A widget that swipe up and down the card view.
 Enjoy!
 
 
-![screenshot.gif]()
+![](screenshot.gif)
 
 
 Developed By
