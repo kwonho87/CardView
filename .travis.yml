@@ -21,9 +21,9 @@ before_install:
 - echo "no" | avdmanager create avd -n test -k "system-images;android-19;default;armeabi-v7a" -c 200M -f &>/dev/null
 - $ANDROID_HOME/emulator/emulator -avd test -no-audio -no-window & &>/dev/null
 
-install:
-# Build debug and release(run proguard)
-- ./gradlew clean ktlintCheck assemble assembleDebugAndroidTest -Pci -s --scan
+#install:
+## Build debug and release(run proguard)
+#- ./gradlew clean ktlintCheck assemble assembleDebugAndroidTest -Pci -s --scan
 
 before_script:
 # Make sure the emulator is available
