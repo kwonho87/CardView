@@ -17,9 +17,8 @@ android:
   components:
   - platform-tools
   - tools
-  - build-tools-25.0.2
-  - android-25
-  - android-21
+  - build-tools-26.0.2
+  - android-26
   - extra-google-google_play_services
   - extra-google-m2repository
   - extra-android-support
@@ -27,7 +26,9 @@ android:
   - sys-img-armeabi-v7a-android-21
 
   licenses:
+  - 'android-sdk-preview-license-52d11cd2'
   - 'android-sdk-license-.+'
+  - 'google-gdk-license-.+'
 
 before_install:
 - chmod +x gradlew
@@ -38,6 +39,8 @@ before_install:
 - adb shell input keyevent 82 &
 
 before_script:
+- echo no | android create avd --force -n test -t android-22 --abi armeabi-v7a -c 100M
+- emulator -avd test -no-audio -no-window &
 - android-wait-for-emulator
 - adb shell input keyevent 82 &
 
