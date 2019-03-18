@@ -1,10 +1,7 @@
 CardView
 ============================
 [![Build Status](https://travis-ci.org/kwonho87/CardView.svg?branch=master)](https://travis-ci.org/kwonho87/CardView)
-[![Go Report Card](https://goreportcard.com/badge/github.com/torden/go-strutil)](https://goreportcard.com/report/github.com/torden/go-strutil)
-[![GoDoc](https://godoc.org/github.com/torden/go-strutil?status.svg)](https://godoc.org/github.com/torden/go-strutil)
 [![Coverage Status](https://coveralls.io/repos/github/kwonho87/CardView/badge.svg?branch=master)](https://coveralls.io/github/kwonho87/CardView?branch=master)
-[![Go Walker](http://gowalker.org/api/v1/badge)](https://gowalker.org/github.com/torden/go-strutil)
 [![GitHub version](https://badge.fury.io/gh/torden%2Fgo-strutil.svg)](https://badge.fury.io/gh/torden%2Fgo-strutil)
 
 A widget that swipe up and down the card view.
