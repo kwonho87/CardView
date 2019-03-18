@@ -1,11 +1,10 @@
 language: android
 
 jdk:
-# build-tools 24.0.2 need jdk8 or above.
 - oraclejdk8
+
 android:
   components:
-  # Ref https://github.com/travis-ci/travis-ci/issues/6260.
   - tools
   - platform-tools
   - build-tools-28.0.3
@@ -30,42 +29,3 @@ cache:
   - $HOME/.gradle/caches/
   - $HOME/.gradle/wrapper/
   - $HOME/.android/build-cache
-
-
-
-#language: android
-#
-#jdk:
-#- oraclejdk8
-#
-#sudo: false
-#
-#env:
-#  global:
-#  # install timeout in minutes (2 minutes by default)
-#  - ADB_INSTALL_TIMEOUT=8
-#
-#android:
-#  components:
-#  - tools
-#  - build-tools-28.0.3
-#  - android-28
-#  - extra-android-support
-#  - extra-google-m2repository
-#  - extra-android-m2repository
-#  licenses:
-#  - 'android-sdk-preview-license-52d11cd2'
-#  - 'android-sdk-license-.+'
-#  - 'google-gdk-license-.+'
-#
-#before_install:
-#- yes | sdkmanager "platforms;android-28"
-#- mkdir -p "$ANDROID_HOME/licenses"
-#- echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_HOME/licenses/android-sdk-license"
-#- echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
-#- chmod +x gradlew
-#- ./gradlew dependencies || true
-#
-#script:
-#- android list target
-#- ./gradlew connectedAndroidTest
