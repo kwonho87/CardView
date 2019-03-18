@@ -1,49 +1,23 @@
 language: android
 
-env:
-  global:
-  - ADB_INSTALL_TIMEOUT=8
-
-jdk: oraclejdk8
-
-before_install:
-# Download SDK
-- yes | sdkmanager "tools" &>/dev/null
-- yes | sdkmanager "platform-tools" &>/dev/null
-- yes | sdkmanager "platforms;android-28" &>/dev/null
-# Download emulator
-- yes | sdkmanager "platforms;android-19" &>/dev/null
-- yes | sdkmanager "system-images;android-19;default;armeabi-v7a" &>/dev/null
-# Update remaining dependencies and accept licenses
-- yes | sdkmanager --update &>/dev/null
-- yes | sdkmanager --licenses &>/dev/null
-# Setup emulator
-- echo "no" | avdmanager create avd -n test -k "system-images;android-19;default;armeabi-v7a" -c 200M -f &>/dev/null
-- $ANDROID_HOME/emulator/emulator -avd test -no-audio -no-window & &>/dev/null
-
-#install:
-## Build debug and release(run proguard)
-#- ./gradlew clean ktlintCheck assemble assembleDebugAndroidTest -Pci -s --scan
-
-before_script:
-# Make sure the emulator is available
-- android-wait-for-emulator
-
-# Turn off animations
-- adb shell settings put global window_animation_scale 0 &
-- adb shell settings put global transition_animation_scale 0 &
-- adb shell settings put global animator_duration_scale 0 &
-
-# Wake up
-- adb shell input keyevent 82 &
+jdk:
+# build-tools 24.0.2 need jdk8 or above.
+- oraclejdk8
+android:
+  components:
+  # Ref https://github.com/travis-ci/travis-ci/issues/6260.
+  - tools
+  - platform-tools
+  - build-tools-28.0.3
+  - android-28
+  - extra
 
 script:
-# Run all checks
-- ./gradlew testDebug connectedDebugAndroidTest -Pci -s --scan
+- ./gradlew clean check
 
-branches:
-  except:
-  - gh-pages
+after_script:
+- cat ./demo/build/outputs/lint-results.xml
+- cat ./library/build/outputs/lint-results.xml
 
 sudo: false
 
